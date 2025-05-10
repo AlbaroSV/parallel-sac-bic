@@ -5,8 +5,8 @@
 #include <string>
 #include "../../../core/cipher/chacha20/chacha20.cpp"
 
-#ifndef CHECK_IMPLEMENTATION_T
-#define CHECK_IMPLEMENTATION_T
+#ifndef CHECK_IMPLEMENTATION_CHACHA20
+#define CHECK_IMPLEMENTATION_CHACHA20
 
 int check_implementation_CHACHA20() {
     // Based on RFC8439 section 2.4.2 
