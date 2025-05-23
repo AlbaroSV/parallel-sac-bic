@@ -39,4 +39,5 @@ const int HC256_CHIPHER_OPTION = 1;
 const int RC4_CHIPHER_OPTION = 2;
 const int IDENTITY_CHIPHER_OPTION = 3;
 
+const string cleanConsole = "\033[2J\033[H"; 
 #endif

@@ -2,6 +2,9 @@
 #include "../../core/tests/test_setup.cpp"
 #include "../../core/shared/global.cpp"
 
+#ifndef CONSOLE_APP
+#define CONSOLE_APP
+
 
 void get_alg_option(int* alg_option){
     std::cout << "Seleccione la opcion deseada" << "\n";
@@ -66,6 +69,7 @@ void get_n_m_l(int cipher_opt, int alg_option, int* n, int* m, int* l){
 }
 
 int console_run(){
+    std::cout << "// CONSOLE \n"; 
     std::cout << "Console application running \n"; 
     int n, m, l, alg_option, cipher_opt;
 
@@ -89,3 +93,5 @@ int console_run(){
     make_test(&config); 
     return 0;
 }
+
+#endif

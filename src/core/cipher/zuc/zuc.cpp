@@ -307,18 +307,11 @@ void GenerateKeystream(u32 *pKeystream, int KeystreamLen)
     }
 }
 
-template<size_t MAX_SIZE>
+u8 k[16] = {0x00};
+u8 iv[16] = {0x00};
+
+
 std::bitset<MAX_SIZE> stream_cipher_ZUC(std::bitset<MAX_SIZE> input, int n, int /*m*/) {
-    // Convertir el bitset de entrada en un array de bytes para la clave y el IV
-    u8 k[16];
-    u8 iv[16];
-    
-    // Rellenar la clave y el IV con valores fijos (esto debería adaptarse a tus necesidades)
-    for (int i = 0; i < 16; i++) {
-        k[i] = 0x00;
-        iv[i] = 0x00;
-    }
-    
     if (is_debug_mode) {
         std::cout << "[DEBUG] Starting ZUC stream cipher with MAX_SIZE: " << MAX_SIZE 
                   << ", n: " << n << std::endl;
@@ -326,7 +319,7 @@ std::bitset<MAX_SIZE> stream_cipher_ZUC(std::bitset<MAX_SIZE> input, int n, int 
     }
     
     // Inicializar el cifrado ZUC
-    Initialization(k, iv);
+    // Initialization(k, iv);
     
     // Generar el keystream necesario
     int num_words = (MAX_SIZE + 31) / 32; // Número de palabras de 32 bits necesarias
