@@ -25,7 +25,7 @@ typedef struct {
 } TestSetUp;
 
 const int MAX_L = 1000000;
-const int MAX_SIZE = 2048;
+const int MAX_SIZE = 4096;
 
 const double Z_critical_normal_distribution = 3.090;
 const double X2_critical_value = 6.6349;

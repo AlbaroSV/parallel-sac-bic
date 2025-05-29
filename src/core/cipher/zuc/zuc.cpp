@@ -345,4 +345,38 @@ std::bitset<MAX_SIZE> stream_cipher_ZUC(std::bitset<MAX_SIZE> input, int n, int 
     return input ^ keystream_bits;
 }
 
+std::vector<char> stream_cipher_ZUC_BYTES(std::vector<char> input, int n, int /*m*/) {
+    std::vector<char> result = input;  
+    size_t num_words = (input.size() + 3) / 4;  
+
+    // 3. Generar el keystream
+    std::vector<uint32_t> keystream(num_words);
+    GenerateKeystream(keystream.data(), num_words);
+
+    // 4. Aplicar XOR a nivel de byte (versión simplificada)
+    for (size_t i = 0; i < input.size(); ++i) {
+        // Determinar qué palabra del keystream usar
+        size_t word_index = i / 4;
+        if (word_index >= keystream.size()) break;
+        
+        // Extraer el byte correspondiente de la palabra
+        uint32_t word = keystream[word_index];
+        uint8_t key_byte = (word >> (8 * (3 - (i % 4)))) & 0xFF;
+        
+        // Aplicar XOR
+        result[i] ^= static_cast<char>(key_byte);
+    }
+    return result;
+}
+
+std::vector<uint32_t> stream_cipher_ZUC_WORD(std::vector<uint32_t> input, int n, int /*m*/) {
+    std::vector<uint32_t> keystream(input);
+    GenerateKeystream(keystream.data(), input.size());
+
+    for (size_t i = 0; i < input.size(); ++i) {
+        input[i] ^= keystream[i];
+    }
+    return input; 
+}
+
 #endif
