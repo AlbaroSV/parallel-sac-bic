@@ -1,8 +1,5 @@
 #include <iostream>
 #include "presentation/console/console.h"
-#include "core/tests/test_setup.cpp"
-#include "presentation/console/zuc/zuc_console_interface.cpp"
-
 #include <string>
 using namespace std; 
 
@@ -14,8 +11,6 @@ int main(){
     //     return console_run();
     // }
 
-    console_interface_zuc(); 
-
-    
+    console_run();    
     return 1; 
 }

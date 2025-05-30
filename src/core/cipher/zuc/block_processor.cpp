@@ -6,9 +6,12 @@
 #include <string>
 #include "./zuc.cpp"
 
+#ifndef ZUC_PROCESSOR
+#define ZUC_PROCESSOR 
+
 using namespace std; 
 
-vector<char> blockProcessorByte(vector<char> buffer) {
+vector<char> zucblockProcessorByte(vector<char> buffer) {
     
     // TODO: decide the size of the block...
     Initialization(k,iv); 
@@ -16,9 +19,11 @@ vector<char> blockProcessorByte(vector<char> buffer) {
 }
 
 
-vector<uint32_t> blockProcessorWord(vector<uint32_t> buffer) {
+vector<uint32_t> zucblockProcessorWord(vector<uint32_t> buffer) {
     
     // TODO: decide the size of the block...
     Initialization(k,iv); 
     return stream_cipher_ZUC_WORD(buffer, -1,-1); 
 }
+
+#endif

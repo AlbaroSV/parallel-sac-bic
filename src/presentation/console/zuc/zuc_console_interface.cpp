@@ -1,17 +1,15 @@
-#include<iostream>
-#include "../console.h"
-#include "../../../core/command/encrypt_files/encrypt_files.cpp"
-#include "../../../core/services/performance_analyzer.cpp"
 #include "../../../core/cipher/zuc/zuc.cpp"
 #include "../../../core/cipher/zuc/block_processor.cpp"
 #include "../../../core/shared/global.cpp"
 #include "../../../core/tests/performance/performance.cpp"
+#include "../../../core/tests/bic/bic.cpp"
+#include "../../../core/tests/sac/sac.cpp"
 
 #ifndef ZUC_CONSOLE_INTERFACE
 #define ZUC_CONSOLE_INTERFACE
 
 
-void console_interface_zuc()
+int console_interface_zuc()
 {
     std::cout << cleanConsole; 
     std::cout << ".// CONSOLE // ZUC" << std::endl; 
@@ -61,16 +59,16 @@ void console_interface_zuc()
             
             std::cout << "Especifica la ruta donde se escribiran los archivos cifrados" << std::endl;
             std::cin >> output_files;    
-            runPerformanceTestWithWordProcessor(blockProcessorWord, input_files, output_files); 
+            runPerformanceTestWithWordProcessor(zucblockProcessorWord, input_files, output_files); 
             break;
-        case 4:
-            console_run();
-            break;
-        
+        case 4: 
+            return 1; 
+
         default:
             std::cout << "Wrong choice, please try other." << std::endl;
             console_interface_zuc();  
             break;
     }
+    return 0; 
 }
 #endif
