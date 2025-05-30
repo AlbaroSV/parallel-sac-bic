@@ -15,7 +15,7 @@
 
 int check_implementation_SNOW() {
     // Enable debug mode
-    is_debug_mode = 1;
+    snow_is_debug_mode = 1;
 
     // Test with all-zero inputs
     cout << "=== SNOW 3G Debug Test ===" << endl;
@@ -25,7 +25,7 @@ int check_implementation_SNOW() {
     bitset<MAX_SIZE> output = stream_cipher_SNOW3G(input, 256, 0);
     
     // Print final output
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
         cout << "\nFinal Output (first 256 bits):" << endl;
         for (int i = 0; i < 32; i++) {
             u8 byte = 0;

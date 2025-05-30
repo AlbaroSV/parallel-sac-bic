@@ -212,7 +212,7 @@ u32 L2(u32 X)
     return (X ^ ROT(X, 8) ^ ROT(X, 14) ^ ROT(X, 22) ^ ROT(X, 30));
 }
 
-#define MAKEU32(a, b, c, d) (((u32)(a) << 24) | ((u32)(b) << 16) | ((u32)(c) << 8) | ((u32)(d)))
+#define ZUC_MAKEU32(a, b, c, d) (((u32)(a) << 24) | ((u32)(b) << 16) | ((u32)(c) << 8) | ((u32)(d)))
 
 /* F */
 u32 F()
@@ -223,9 +223,9 @@ u32 F()
     W2 = F_R2 ^ BRC_X2;
     u = L1((W1 << 16) | (W2 >> 16));
     v = L2((W2 << 16) | (W1 >> 16));
-    F_R1 = MAKEU32(S0[u >> 24], S1[(u >> 16) & 0xFF],
+    F_R1 = ZUC_MAKEU32(S0[u >> 24], S1[(u >> 16) & 0xFF],
                    S0[(u >> 8) & 0xFF], S1[u & 0xFF]);
-    F_R2 = MAKEU32(S0[v >> 24], S1[(v >> 16) & 0xFF],
+    F_R2 = ZUC_MAKEU32(S0[v >> 24], S1[(v >> 16) & 0xFF],
                    S0[(v >> 8) & 0xFF], S1[v & 0xFF]);
     
     if (is_debug_mode) {

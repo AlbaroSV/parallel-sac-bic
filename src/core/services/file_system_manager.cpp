@@ -6,6 +6,9 @@
 #include <string>
 #include <chrono>
 
+#ifndef FILE_SYSTEM_MANAGER
+#define FILE_SYSTEM_MANAGER
+
 namespace fs = std::filesystem;
 
 // Lee un archivo y devuelve su contenido como vector de bytes
@@ -65,3 +68,4 @@ std::vector<std::string> getFilesInDirectory(const std::string& inputDir) {
     return files;
 }
 
+#endif

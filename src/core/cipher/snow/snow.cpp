@@ -25,10 +25,11 @@ typedef uint64_t u64;
 using namespace std;
 using namespace std::chrono;
 
-u8 key[32] = {0x00};
-u8 iv[16] = {0x00};
+u8 snow_key[32] = {0x00};
+u8 snow_iv[16] = {0x00};
 int is_aead_mode = 0;
-int is_debug_mode = 0; 
+int snow_is_debug_mode = 0; 
+
 
 u8 SBox[256] = {
   0x63,0x7C,0x77,0x7B,0xF2,0x6B,0x6F,0xC5,0x30,0x01,0x67,0x2B,0xFE,0xD7,0xAB,0x76,
@@ -53,18 +54,18 @@ u8 Sigma[16] = {0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15};
 u32 AesKey1[4] = { 0, 0, 0, 0 };
 u32 AesKey2[4] = { 0, 0, 0, 0 };
 
-#define MAKEU32(a, b) (((u32)(a) << 16) | ((u32)(b) ))
-#define MAKEU16(a, b) (((u16)(a) << 8) | ((u16)(b) ))
+#define SNOW_MAKEU32(a, b) (((u32)(a) << 16) | ((u32)(b) ))
+#define SNOW_MAKEU16(a, b) (((u16)(a) << 8) | ((u16)(b) ))
 
 struct SnowV32 {
   u16 A[16], B[16];
   u32 R1[4], R2[4], R3[4];
 
   void aes_enc_round(u32 * result, u32 * state, u32 * roundKey) {
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== AES Encryption Round ===" << endl;
       print_hex((u8*)state, 16, "Input State");
-      print_hex((u8*)roundKey, 16, "Round Key");
+      print_hex((u8*)roundKey, 16, "Round snow_Key");
     }
 
     #define ROTL32(word32, offset) ((word32 << offset) | (word32 >> (32 - offset)))
@@ -84,7 +85,7 @@ struct SnowV32 {
     MKSTEP(2);
     MKSTEP(3);
 
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       print_hex((u8*)result, 16, "Output State");
       cout << "==========================\n" << endl;
     }
@@ -109,12 +110,12 @@ struct SnowV32 {
     for (int i = 0; i < 16; i++)
       tmp[i] = (u8)(state[Sigma[i] >> 2] >> ((Sigma[i] & 3) << 3));
     for (int i = 0; i < 4; i++)
-      state[i] = MAKEU32(MAKEU16(tmp[4 * i + 3], tmp[4 * i + 2]),
-    MAKEU16(tmp[4 * i + 1], tmp[4 * i]));
+      state[i] = SNOW_MAKEU32(SNOW_MAKEU16(tmp[4 * i + 3], tmp[4 * i + 2]),
+    SNOW_MAKEU16(tmp[4 * i + 1], tmp[4 * i]));
   }
 
   void fsm_update(void) {
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== FSM Update ===" << endl;
       cout << "Before update:" << endl;
       print_hex((u8*)R1, 16, "R1");
@@ -124,14 +125,14 @@ struct SnowV32 {
     u32 R1temp[4];
     memcpy(R1temp, R1, sizeof(R1));
     for (int i = 0; i < 4; i++) {
-      u32 T2 = MAKEU32(A[2 * i + 1], A[2 * i]);
+      u32 T2 = SNOW_MAKEU32(A[2 * i + 1], A[2 * i]);
       R1[i] = (T2 ^ R3[i]) + R2[i];
     }
     permute_sigma(R1);
     aes_enc_round(R3, R2, AesKey2);
     aes_enc_round(R2, R1temp, AesKey1);
     
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "After update:" << endl;
       print_hex((u8*)R1, 16, "R1");
       print_hex((u8*)R2, 16, "R2");
@@ -141,7 +142,7 @@ struct SnowV32 {
   }
 
   void lfsr_update(void) {
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== LFSR Update ===" << endl;
       cout << "Before update:" << endl;
       print_hex((u8*)A, 32, "LFSR-A");
@@ -158,7 +159,7 @@ struct SnowV32 {
       B[15] = v;
     }
     
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "After update:" << endl;
       print_hex((u8*)A, 32, "LFSR-A");
       print_hex((u8*)B, 32, "LFSR-B");
@@ -167,11 +168,11 @@ struct SnowV32 {
   }
 
   void keystream(u8 * z) {
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== Keystream Generation ===" << endl;
     }
     for (int i = 0; i < 4; i++) {
-      u32 T1 = MAKEU32(B[2 * i + 9], B[2 * i + 8]);
+      u32 T1 = SNOW_MAKEU32(B[2 * i + 9], B[2 * i + 8]);
       u32 v = (T1 + R1[i]) ^ R2[i];
       z[i * 4 + 0] = (v >> 0) & 0xff;
       z[i * 4 + 1] = (v >> 8) & 0xff;
@@ -183,7 +184,7 @@ struct SnowV32 {
     fsm_update();
     lfsr_update();
 
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       print_hex(z, 16, "Generated Keystream");
       cout << "=========================\n" << endl;
     }
@@ -204,19 +205,19 @@ struct SnowV32 {
     cout << "\n"; 
   }
 
-  void keyiv_setup(u8 * key, u8 * iv, int is_aead_mode) {
-    if (is_debug_mode) {
-      cout << "\n=== Key/IV Setup ===" << endl;
-      print_hex(key, 32, "Input Key");
-      print_hex(iv, 16, "Input IV");
+  void keyiv_setup(u8 * snow_key, u8 * snow_iv, int is_aead_mode) {
+    if (snow_is_debug_mode) {
+      cout << "\n=== snow_Key/snow_IV Setup ===" << endl;
+      print_hex(snow_key, 32, "Input snow_Key");
+      print_hex(snow_iv, 16, "Input snow_IV");
       cout << "AEAD Mode: " << is_aead_mode << endl;
     }
     
     for (int i = 0; i < 8; i++) {
-      A[i] = MAKEU16(iv[2 * i + 1], iv[2 * i]);
-      A[i + 8] = MAKEU16(key[2 * i + 1], key[2 * i]);
+      A[i] = SNOW_MAKEU16(snow_iv[2 * i + 1], snow_iv[2 * i]);
+      A[i + 8] = SNOW_MAKEU16(snow_key[2 * i + 1], snow_key[2 * i]);
       B[i] = 0x0000;
-      B[i + 8] = MAKEU16(key[2 * i + 17], key[2 * i + 16]);
+      B[i + 8] = SNOW_MAKEU16(snow_key[2 * i + 17], snow_key[2 * i + 16]);
     }
 
     if(is_aead_mode == 1) {
@@ -239,22 +240,22 @@ struct SnowV32 {
       keystream(z);
       
       for (int j = 0; j < 8; j++) {
-        A[j + 8] ^= MAKEU16(z[2 * j + 1], z[2 * j]);
+        A[j + 8] ^= SNOW_MAKEU16(z[2 * j + 1], z[2 * j]);
       }
       if (i == 14) {
         for (int j = 0; j < 4; j++) {
-          R1[j] ^= MAKEU32(MAKEU16(key[4 * j + 3], key[4 * j + 2]),
-          MAKEU16(key[4 * j + 1], key[4 * j + 0]));
+          R1[j] ^= SNOW_MAKEU32(SNOW_MAKEU16(snow_key[4 * j + 3], snow_key[4 * j + 2]),
+          SNOW_MAKEU16(snow_key[4 * j + 1], snow_key[4 * j + 0]));
         }
       }
       if (i == 15) {
         for (int j = 0; j < 4; j++) {
-          R1[j] ^= MAKEU32(MAKEU16(key[4 * j + 19], key[4 * j + 18]),
-          MAKEU16(key[4 * j + 17], key[4 * j + 16]));
+          R1[j] ^= SNOW_MAKEU32(SNOW_MAKEU16(snow_key[4 * j + 19], snow_key[4 * j + 18]),
+          SNOW_MAKEU16(snow_key[4 * j + 17], snow_key[4 * j + 16]));
         }
       }
     }
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "After initialization:" << endl;
       print_hex((u8*)A, 32, "LFSR-A");
       print_hex((u8*)B, 32, "LFSR-B");
@@ -266,24 +267,26 @@ struct SnowV32 {
   }
 };
 
-#define MAX_SIZE 4096
+
+SnowV32 SNOW_V;
+
 bitset<MAX_SIZE> stream_cipher_SNOW3G(bitset<MAX_SIZE> input, int n, int /*m*/)
 {
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== Stream Cipher Operation ===" << endl;
       cout << "Input size: " << n << " bits" << endl;
     }
-    SnowV32 SNOW_V;
+    // SnowV32 SNOW_V;
     bitset<MAX_SIZE> output;
     
-    // Initialize the cipher with key and IV
-    SNOW_V.keyiv_setup(key, iv, is_aead_mode);
+    // Initialize the cipher with snow_key and snow_IV
+    // SNOW_V.keyiv_setup(snow_key, snow_iv, is_aead_mode);
     
     // Calculate how many 128-bit (16-byte) blocks we need to process
     int num_blocks = (n + 127) / 128;
     int remaining_bits = n % 128;
     
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "Processing " << num_blocks << " blocks (" 
            << num_blocks * 128 << " bits)" << endl;
       if (remaining_bits > 0) {
@@ -292,7 +295,7 @@ bitset<MAX_SIZE> stream_cipher_SNOW3G(bitset<MAX_SIZE> input, int n, int /*m*/)
     }
     // Process complete 128-bit blocks
     for (int i = 0; i < num_blocks; i++) {
-        if (is_debug_mode) {
+        if (snow_is_debug_mode) {
           cout << "\nProcessing block " << i+1 << "/" << num_blocks << endl;
         }
         u8 keystream[16];
@@ -314,7 +317,7 @@ bitset<MAX_SIZE> stream_cipher_SNOW3G(bitset<MAX_SIZE> input, int n, int /*m*/)
         for (int j = 0; j < bits_to_process; j++) {
             input_block.set(j, input[start_bit + j]);
         }
-        if (is_debug_mode) {
+        if (snow_is_debug_mode) {
           // Print input block
           u8 input_bytes[16] = {0};
           for (int j = 0; j < bits_to_process; j++) {
@@ -333,7 +336,7 @@ bitset<MAX_SIZE> stream_cipher_SNOW3G(bitset<MAX_SIZE> input, int n, int /*m*/)
         for (int j = 0; j < bits_to_process; j++) {
             output.set(start_bit + j, output_block[j]);
         }
-        if (is_debug_mode) {
+        if (snow_is_debug_mode) {
           // Print output block
           u8 output_bytes[16] = {0};
           for (int j = 0; j < bits_to_process; j++) {
@@ -345,10 +348,86 @@ bitset<MAX_SIZE> stream_cipher_SNOW3G(bitset<MAX_SIZE> input, int n, int /*m*/)
         }
     }
     
-    if (is_debug_mode) {
+    if (snow_is_debug_mode) {
       cout << "\n=== Stream Cipher Complete ===" << endl;
     }
     
     return output;
 }
+
+
+std::vector<char> stream_cipher_SNOW3G_BYTES(std::vector<char>& input) {
+    if (input.empty()) {
+        return {};
+    }
+    
+    std::vector<char> output;
+    output.resize(input.size());
+    
+    const size_t block_size = 16; // Tamaño de bloque en bytes (128 bits)
+    const size_t num_blocks = input.size() / block_size;
+    const size_t remaining_bytes = input.size() % block_size;
+    
+    if (snow_is_debug_mode) {
+        std::cout << "\n=== Stream Cipher Operation ===" << std::endl;
+        std::cout << "Input size: " << input.size() << " bytes" << std::endl;
+        std::cout << "Processing " << num_blocks << " full blocks ("
+                  << num_blocks * block_size << " bytes)" << std::endl;
+        if (remaining_bytes > 0) {
+            std::cout << "Plus " << remaining_bytes << " remaining bytes" << std::endl;
+        }
+    }
+    
+    // Procesar bloques completos
+    for (size_t i = 0; i < num_blocks; ++i) {
+        if (snow_is_debug_mode) {
+            std::cout << "\nProcessing block " << i+1 << "/" << num_blocks << std::endl;
+        }
+        
+        uint8_t keystream[block_size];
+        SNOW_V.keystream(keystream);
+        
+        const size_t offset = i * block_size;
+        
+        if (snow_is_debug_mode) {
+            print_hex(keystream, block_size, "Keystream Block");
+        }
+        
+        // XOR entre el bloque de entrada y el keystream
+        for (size_t j = 0; j < block_size; ++j) {
+            output[offset + j] = input[offset + j] ^ keystream[j];
+        }
+        
+    }
+    
+    // Procesar bytes restantes (si los hay)
+    if (remaining_bytes > 0) {
+        if (snow_is_debug_mode) {
+            std::cout << "\nProcessing final partial block (" 
+                      << remaining_bytes << " bytes)" << std::endl;
+        }
+        
+        uint8_t keystream[block_size];
+        SNOW_V.keystream(keystream);
+        
+        const size_t offset = num_blocks * block_size;
+        
+        if (snow_is_debug_mode) {
+            print_hex(keystream, remaining_bytes, "Keystream Block");
+        }
+        
+        // XOR solo para los bytes restantes
+        for (size_t j = 0; j < remaining_bytes; ++j) {
+            output[offset + j] = input[offset + j] ^ keystream[j];
+        }
+        
+    }
+    
+    if (snow_is_debug_mode) {
+        std::cout << "\n=== Stream Cipher Complete ===" << std::endl;
+    }
+    
+    return output;
+}
+
 #endif
