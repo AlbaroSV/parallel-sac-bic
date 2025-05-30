@@ -15,7 +15,7 @@
 
 int check_implementation_trivium() {
     // Enable debug mode
-    is_debug_mode = 1;
+    trivium_is_debug_mode = 1;
     // Ejemplo de clave (80 bits) - puede cambiarse
     uint8_t key[10] = {
         0x80, 0x00, 0x00, 0x00, 0x00,
